@@ -47,7 +47,7 @@ class MusicSource:
         click.echo("")
         click.echo(
             _("Searching {keyword} from ...").format(
-                keyword=colorize(config.get("keyword"), "highlight")
+                keyword=colorize(keyword, "highlight")
             ),
             nl=False,
         )

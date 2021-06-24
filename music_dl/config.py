@@ -27,12 +27,16 @@ def init():
         "url": "",
         # 下载歌单 -p --playlist
         "playlist": "",
+        # download from file -f --filepath
+        "filepath": "",
         # 代理 -x --proxy
         "proxies": None,
         # 显示详情 -v --verbose
         "verbose": False,
         # 搜索结果不排序去重 --nomerge
         "nomerge": False,
+        # non interactive mode --batch
+        "batch": False,
         # 下载歌词 --lyrics
         "lyrics": False,
         # 下载封面 --cover

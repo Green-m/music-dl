@@ -32,17 +32,23 @@ def menu(songs_list):
     click.echo(tb)
     click.echo("")
 
-    # 用户指定下载序号
-    prompt = (
-        _("请输入{下载序号}，支持形如 {numbers} 的格式，输入 {N} 跳过下载").format(
-            下载序号=colorize(_("下载序号"), "yellow"),
-            numbers=colorize("0 3-5 8", "yellow"),
-            N=colorize("N", "yellow"),
-        )
-        + "\n >>"
-    )
 
-    choices = click.prompt(prompt)
+    # if batch config set, ignore the prompt.
+    if config.get('batch'):
+        choices = "0"
+    else:
+    # 用户指定下载序号
+        prompt = (
+            _("请输入{下载序号}，支持形如 {numbers} 的格式，输入 {N} 跳过下载").format(
+                下载序号=colorize(_("下载序号"), "yellow"),
+                numbers=colorize("0 3-5 8", "yellow"),
+                N=colorize("N", "yellow"),
+            )
+            + "\n >>"
+        )
+        choices = click.prompt(prompt)
+       
+
 
     while not re.match(r"^((\d+\-\d+)|(\d+)|\s+)+$", choices):
         if choices.lower() == "n":
@@ -76,6 +82,15 @@ def run():
     elif config.get("url"):
         song = ms.single(config.get("url"))
         song.download()
+    elif config.get("filepath"):
+        with open(config.get('filepath')) as f:
+            keyword_list =  f.readlines()
+            #print(keyword_list)
+        for key_word in keyword_list:
+            #song = ms.single(config.get("filepath"))
+            #print(key_word)
+            songs_list = ms.search(key_word.strip(), config.get("source").split())
+            menu(songs_list)
     else:
         return
 
@@ -85,6 +100,7 @@ def run():
 @click.option("-k", "--keyword", help=_("搜索关键字，歌名和歌手同时输入可以提高匹配（如 空帆船 朴树）"))
 @click.option("-u", "--url", default="", help=_("通过指定的歌曲URL下载音乐"))
 @click.option("-p", "--playlist", default="", help=_("通过指定的歌单URL下载音乐"))
+@click.option("-f", "--filepath", default="", help=_("read key word from file"))
 @click.option(
     "-s",
     "--source",
@@ -98,10 +114,12 @@ def run():
 @click.option("--lyrics", default=False, is_flag=True, help=_("同时下载歌词"))
 @click.option("--cover", default=False, is_flag=True, help=_("同时下载封面"))
 @click.option("--nomerge", default=False, is_flag=True, help=_("不对搜索结果列表排序和去重"))
+@click.option("--batch", default=False, is_flag=True, help=_("Batch mode, non interactive"))
 def main(
     keyword,
     url,
     playlist,
+    filepath,
     source,
     number,
     outdir,
@@ -110,12 +128,13 @@ def main(
     lyrics,
     cover,
     nomerge,
+    batch
 ):
     """
         Search and download music from netease, qq, kugou, baidu and xiami.
         Example: music-dl -k "周杰伦"
     """
-    if sum([bool(keyword), bool(url), bool(playlist)]) != 1:
+    if sum([bool(keyword), bool(url), bool(playlist)], bool(filepath)) != 1:
         # click.echo(_("ERROR: 必须指定搜索关键字、歌曲的URL或歌单的URL中的一个") + "\n", err=True)
         # ctx = click.get_current_context()
         # click.echo(ctx.get_help())
@@ -127,6 +146,7 @@ def main(
     config.set("keyword", keyword)
     config.set("url", url)
     config.set("playlist", playlist)
+    config.set("filepath", filepath)
     if source:
         config.set("source", source)
     config.set("number", min(number, 50))
@@ -135,6 +155,7 @@ def main(
     config.set("lyrics", lyrics)
     config.set("cover", cover)
     config.set("nomerge", nomerge)
+    config.set("batch", batch)
     if proxy:
         proxies = {"http": proxy, "https": proxy}
         config.set("proxies", proxies)
