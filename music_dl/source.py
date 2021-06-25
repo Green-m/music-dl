@@ -11,6 +11,7 @@
 """
 
 import re
+import difflib
 import threading
 import importlib
 import traceback
@@ -75,7 +76,8 @@ class MusicSource:
         # 对搜索结果排序和去重
         if not config.get("nomerge"):
             ret_songs_list.sort(
-                key=lambda song: (song.singer, song.title, song.size), reverse=True
+                #key=lambda song: (song.singer, song.title, song.size), reverse=True
+                key=lambda song: (difflib.SequenceMatcher(None, song.title, keyword).ratio(), difflib.SequenceMatcher(None, song.singer, keyword).ratio(), song.size), reverse=True
             )
             tmp_list = []
             for i in range(len(ret_songs_list)):
